@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reminder App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #1D9E75;
+      --green-light: #E1F5EE;
+      --green-mid: #9FE1CB;
+      --green-dark: #0F6E56;
+      --amber: #FAC775;
+      --amber-text: #633806;
+      --red: #E24B4A;
+      --red-light: #FCEBEB;
+      --bg: #F7F6F2;
+      --surface: #FFFFFF;
+      --surface2: #F1EFE8;
+      --border: rgba(0,0,0,0.09);
+      --border2: rgba(0,0,0,0.16);
+      --text: #1a1a18;
+      --text2: #5F5E5A;
+      --text3: #888780;
+      --radius: 14px;
+      --radius-sm: 9px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    /* ── Header ── */
+    .app-header {
+      background: var(--surface);
+      border-bottom: 0.5px solid var(--border);
+      padding: 18px 20px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 580px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-icon {
+      width: 40px; height: 40px;
+      background: var(--green-light);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-icon svg { width: 20px; height: 20px; stroke: var(--green); }
+    .header-title { font-size: 18px; font-weight: 600; color: var(--text); line-height: 1.1; }
+    .header-sub { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 1px; }
+    .live-clock {
+      margin-left: auto;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--text2);
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 5px 10px;
+      border: 0.5px solid var(--border);
+    }
+
+    /* ── Main layout ── */
+    .main-wrap { max-width: 580px; margin: auto; padding: 20px 16px 0; }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .form-card h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .form-card h2 span {
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+    }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text3);
+      margin-bottom: 5px;
+      letter-spacing: 0.03em;
+    }
+
+    .app-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius-sm);
+      padding: 11px 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .app-input::placeholder { color: var(--text3); }
+    .app-input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(29,158,117,0.12);
+      background: #fff;
+    }
+    textarea.app-input { resize: none; line-height: 1.5; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .confirm-btn {
+      width: 100%;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 13px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 4px;
+    }
+    .confirm-btn:hover { background: var(--green-dark); }
+    .confirm-btn:active { transform: scale(0.98); }
+    .confirm-btn svg { width: 18px; height: 18px; stroke: #fff; flex-shrink: 0; }
+
+    .error-msg {
+      background: var(--red-light);
+      color: var(--red);
+      border: 0.5px solid rgba(226,75,74,0.25);
+      border-radius: var(--radius-sm);
+      padding: 9px 13px;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+      animation: fadeIn 0.2s;
+    }
+
+    /* ── Reminders list card ── */
+    .list-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .list-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .list-header h3 span.dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      background: var(--amber);
+      border-radius: 50%;
+    }
+    .count-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text3);
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+
+    /* ── Reminder item ── */
+    .reminder-item {
+      background: var(--surface2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 15px;
+      margin-bottom: 10px;
+      transition: border-color 0.3s, background 0.3s;
+      animation: slideIn 0.25s ease;
+    }
+    @keyframes slideIn {
+      from { opacity:0; transform: translateY(-6px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .reminder-item.triggered {
+      border-color: var(--green);
+      background: var(--green-light);
+      animation: pulseGlow 0.8s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 0 0 rgba(29,158,117,0.3); }
+      to   { box-shadow: 0 0 0 7px rgba(29,158,117,0); }
+    }
+    .reminder-item.done { opacity: 0.55; }
+
+    .item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .item-task { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.3; word-break: break-word; }
+    .item-desc { font-size: 13px; color: var(--text2); margin-top: 4px; line-height: 1.45; word-break: break-word; }
+    .item-meta {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+      margin-top: 8px;
+    }
+    .meta-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px; color: var(--text3);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .meta-time svg { width: 11px; height: 11px; stroke: var(--text3); }
+    .badge {
+      font-size: 11px; font-weight: 500;
+      border-radius: 20px; padding: 2px 9px;
+    }
+    .badge-pending { background: #FAC775; color: #633806; }
+    .badge-done    { background: #C0DD97; color: #27500A; }
+    .countdown-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; color: var(--green-dark);
+      background: var(--green-light);
+      border-radius: 20px; padding: 2px 9px;
+    }
+    .del-btn {
+      background: none; border: none;
+      color: var(--text3); font-size: 15px;
+      cursor: pointer; padding: 2px 5px;
+      border-radius: 5px; line-height: 1;
+      flex-shrink: 0; transition: color 0.15s, background 0.15s;
+    }
+    .del-btn:hover { color: var(--red); background: var(--red-light); }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text3);
+      font-size: 14px;
+      padding: 28px 0 20px;
+    }
+    .empty-state svg { width: 36px; height: 36px; stroke: var(--border2); display: block; margin: 0 auto 10px; }
+
+    /* ── Alarm overlay ── */
+    .alarm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(10,14,12,0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.2s;
+    }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    .alarm-box {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 28px 24px 24px;
+      max-width: 340px; width: 90%;
+      text-align: center;
+      border: 1.5px solid var(--green);
+      box-shadow: 0 8px 40px rgba(29,158,117,0.18);
+      animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity:0; }
+      to   { transform: scale(1); opacity:1; }
+    }
+    .alarm-bell {
+      font-size: 44px;
+      display: block;
+      margin-bottom: 12px;
+      animation: ringBell 0.4s infinite;
+      transform-origin: top center;
+    }
+    @keyframes ringBell {
+      0%,100%{ transform: rotate(-12deg); }
+      50%    { transform: rotate(12deg); }
+    }
+    .alarm-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green); font-weight: 600; margin-bottom: 6px; }
+    .alarm-task { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .alarm-desc { font-size: 13px; color: var(--text2); margin-bottom: 14px; line-height: 1.5; }
+    .alarm-progress { height: 5px; background: var(--green-light); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+    .alarm-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 1s linear; }
+    .alarm-secs { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+    .alarm-dismiss {
+      width: 100%; background: var(--green); color: #fff;
+      border: none; border-radius: var(--radius-sm);
+      padding: 13px; font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .alarm-dismiss:hover { background: var(--green-dark); }
+    .alarm-dismiss:active { transform: scale(0.97); }
+
+    @media (max-width: 400px) {
+      .field-row { grid-template-columns: 1fr; }
+      .form-card, .list-card { padding: 16px; }
+      .main-wrap { padding: 14px 10px 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-title">Reminder</div>
+        <div class="header-sub">Never miss a task</div>
+      </div>
+      <div class="live-clock" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <div class="main-wrap">
+
+    <!-- Add Reminder Form -->
+    <div class="form-card">
+      <h2><span></span> New Reminder</h2>
+
+      <div class="mb-3">
+        <div class="field-label">Task / Work</div>
+        <input type="text" id="taskInput" class="app-input" placeholder="e.g. Take medicine, Call doctor..." maxlength="100">
+      </div>
+
+      <div class="mb-3">
+        <div class="field-label">Description <span style="color:var(--text3);font-weight:400;">(optional)</span></div>
+        <textarea id="descInput" class="app-input" rows="2" placeholder="Add extra details about this task..."></textarea>
+      </div>
+
+      <div class="field-row mb-3">
+        <div>
+          <div class="field-label">Date</div>
+          <input type="date" id="dateInput" class="app-input">
+        </div>
+        <div>
+          <div class="field-label">Time</div>
+          <input type="time" id="timeInput" class="app-input">
+        </div>
+      </div>
+
+      <button class="confirm-btn" onclick="addReminder()">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Confirm &amp; Schedule
+      </button>
+      <div class="error-msg" id="formError"></div>
+    </div>
+
+    <!-- Reminders List -->
+    <div class="list-card">
+      <div class="list-header">
+        <h3><span class="dot"></span> Scheduled</h3>
+        <span class="count-badge" id="countBadge">0 reminders</span>
+      </div>
+      <div id="reminderList">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          No reminders yet.<br>Add one above to get started.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-wrap -->
+
+  <!-- Alarm Overlay -->
+  <div class="alarm-overlay" id="alarmOverlay" style="display:none;">
+    <div class="alarm-box">
+      <span class="alarm-bell">🔔</span>
+      <div class="alarm-label">Reminder Alert</div>
+      <div class="alarm-task" id="alarmTask">Task Name</div>
+      <div class="alarm-desc" id="alarmDesc"></div>
+      <div class="alarm-progress">
+        <div class="alarm-fill" id="alarmFill" style="width:100%;"></div>
+      </div>
+      <div class="alarm-secs" id="alarmSecs">Closing in 5s...</div>
+      <button class="alarm-dismiss" onclick="dismissAlarm()">✓ Got it, Dismiss</button>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────
+    let reminders = [];
+    let alarmInterval = null;
+    let currentAlarmId = null;
+
+    // ── Clock ──────────────────────────────────────────
+    function updateClock() {
+      document.getElementById('clock').textContent =
+        new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ── Set default date ───────────────────────────────
+    (function() {
+      const today = new Date();
+      document.getElementById('dateInput').value = today.toISOString().split('T')[0];
+      document.getElementById('dateInput').min   = today.toISOString().split('T')[0];
+    })();
+
+    // ── Helpers ────────────────────────────────────────
+    function esc(s) {
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('formError');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3500);
+    }
+
+    function formatDateTime(dt) {
+      return dt.toLocaleString([], {
+        weekday:'short', month:'short', day:'numeric',
+        hour:'2-digit', minute:'2-digit'
+      });
+    }
+
+    function getCountdown(scheduledTime) {
+      const diff = scheduledTime - Date.now();
+      if (diff <= 0) return null;
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      if (h > 0) return `in ${h}h ${m}m`;
+      if (m > 0) return `in ${m}m ${s}s`;
+      return `in ${s}s`;
+    }
+
+    // ── Add Reminder ───────────────────────────────────
+    function addReminder() {
+      const task = document.getElementById('taskInput').value.trim();
+      const desc = document.getElementById('descInput').value.trim();
+      const date = document.getElementById('dateInput').value;
+      const time = document.getElementById('timeInput').value;
+
+      if (!task)   return showError('Please enter a task name.');
+      if (!date)   return showError('Please pick a date.');
+      if (!time)   return showError('Please pick a time.');
+
+      const scheduledTime = new Date(`${date}T${time}`);
+      if (isNaN(scheduledTime)) return showError('Invalid date or time.');
+      if (scheduledTime <= new Date()) return showError('Please choose a future date and time.');
+
+      const id = Date.now();
+      const reminder = { id, task, desc, scheduledTime, status: 'pending' };
+      reminders.push(reminder);
+
+      // Schedule alarm
+      const delay = scheduledTime - Date.now();
+      setTimeout(() => triggerAlarm(id), delay);
+
+      renderList();
+
+      // Reset form
+      document.getElementById('taskInput').value = '';
+      document.getElementById('descInput').value = '';
+      document.getElementById('timeInput').value = '';
+    }
+
+    // ── Alarm ──────────────────────────────────────────
+    function triggerAlarm(id) {
+      const r = reminders.find(x => x.id === id);
+      if (!r || r.status !== 'pending') return;
+
+      currentAlarmId = id;
+      r.status = 'triggered';
+      renderList();
+
+      document.getElementById('alarmTask').textContent = r.task;
+      document.getElementById('alarmDesc').textContent = r.desc || '';
+      document.getElementById('alarmFill').style.width = '100%';
+      document.getElementById('alarmSecs').textContent = 'Closing in 5s...';
+      document.getElementById('alarmOverlay').style.display = 'flex';
+
+      // Play beep sound
+      playBeep();
+
+      let seconds = 5;
+      alarmInterval = setInterval(() => {
+        seconds--;
+        const pct = (seconds / 5) * 100;
+        document.getElementById('alarmFill').style.width = pct + '%';
+        document.getElementById('alarmSecs').textContent =
+          seconds > 0 ? `Closing in ${seconds}s...` : 'Closing...';
+        if (seconds <= 0) dismissAlarm();
+      }, 1000);
+    }
+
+    function dismissAlarm() {
+      clearInterval(alarmInterval);
+      document.getElementById('alarmOverlay').style.display = 'none';
+      if (currentAlarmId !== null) {
+        const r = reminders.find(x => x.id === currentAlarmId);
+        if (r) r.status = 'done';
+        currentAlarmId = null;
+        renderList();
+      }
+    }
+
+    // ── Beep using Web Audio API ───────────────────────
+    function playBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        function beep(freq, start, dur) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.4, ctx.currentTime + start);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+          osc.start(ctx.currentTime + start);
+          osc.stop(ctx.currentTime + start + dur);
+        }
+        beep(880, 0,    0.18);
+        beep(1100, 0.22, 0.18);
+        beep(880, 0.44, 0.18);
+        beep(1100, 0.66, 0.35);
+      } catch(e) {}
+    }
+
+    // ── Delete ─────────────────────────────────────────
+    function deleteReminder(id) {
+      reminders = reminders.filter(x => x.id !== id);
+      renderList();
+    }
+
+    // ── Render ─────────────────────────────────────────
+    function renderList() {
+      const list = document.getElementById('reminderList');
+      const active = reminders.filter(r => r.status === 'pending').length;
+      document.getElementById('countBadge').textContent =
+        reminders.length === 1 ? '1 reminder' : `${reminders.length} reminders`;
+
+      if (reminders.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            No reminders yet.<br>Add one above to get started.
+          </div>`;
+        return;
+      }
+
+      const sorted = [...reminders].sort((a,b) => a.scheduledTime - b.scheduledTime);
+      list.innerHTML = sorted.map(r => {
+        const countdown = r.status === 'pending' ? getCountdown(r.scheduledTime) : null;
+        const badgeCls = r.status === 'done' ? 'badge-done' : 'badge-pending';
+        const badgeTxt = r.status === 'done' ? '✓ Done' : '● Pending';
+        return `
+          <div class="reminder-item ${r.status}" id="item-${r.id}">
+            <div class="item-top">
+              <div style="flex:1;min-width:0;">
+                <div class="item-task">${esc(r.task)}</div>
+                ${r.desc ? `<div class="item-desc">${esc(r.desc)}</div>` : ''}
+                <div class="item-meta">
+                  <span class="meta-time">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    ${formatDateTime(r.scheduledTime)}
+                  </span>
+                  <span class="badge ${badgeCls}">${badgeTxt}</span>
+                  ${countdown ? `<span class="countdown-pill">${countdown}</span>` : ''}
+                </div>
+              </div>
+              <button class="del-btn" onclick="deleteReminder(${r.id})" title="Delete">✕</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Refresh countdowns every second ───────────────
+    setInterval(renderList, 1000);
+    renderList();
+  </script>
+</body>
+</html>
